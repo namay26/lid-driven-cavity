@@ -163,11 +163,10 @@ def main():
     plt.style.use("dark_background")
     fig, axs = plt.subplots(1, 3, figsize=(21, 6))
     
-    stream = axs[0].streamplot(X, Y, u_next, v_next, color=np.sqrt(u_next**2 + v_next**2), cmap="coolwarm", density=2)
+    stream = axs[0].streamplot(X, Y, u_next, v_next, density=2)
     axs[0].set_title("Velocity Streamlines")
     axs[0].set_xlim((0, 1))
     axs[0].set_ylim((0, 1))
-    fig.colorbar(stream.lines, ax=axs[0])
 
     velocity_magnitude = np.sqrt(u_next**2 + v_next**2)
     flow_plot = axs[1].contourf(X[::2, ::2], Y[::2, ::2], velocity_magnitude[::2, ::2], cmap="plasma")
