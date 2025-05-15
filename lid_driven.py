@@ -11,7 +11,8 @@
 '''
 
 import matplotlib.pyplot as plt
-import numpy as np
+import numpy as np  
+from tqdm import tqdm # For visual appearance
 
 # Initialising Constants
 
@@ -53,7 +54,7 @@ def main():
         diff[1:-1, 1:-1] = (k[1:-1, 0:-2] + k[0:-2, 1:-1] - 4 * k[1:-1, 1:-1] + k[1:-1, 2:  ] + k[2:  , 1:-1]) / (element_len**2) 
         return diff
     
-    for _ in range(NUM_ITERATIONS):
+    for _ in tqdm(range(NUM_ITERATIONS)):
         duprev_dx = CDS_X(u_prev)
         duprev_dy = CDS_Y(u_prev)
         dvprev_dx = CDS_X(v_prev)
