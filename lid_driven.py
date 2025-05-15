@@ -17,11 +17,11 @@ import pandas as pd
 
 # Initialising Constants
 
-N_GRID_POINTS = 41
+N_GRID_POINTS = 129
 DOMAIN_SIZE = 1.0
 NUM_ITERATIONS = 500
 TIME_STEP = 0.001
-REYNOLDS_NUMBER = 10
+REYNOLDS_NUMBER = 100
 DENSITY = 1.0
 HORIZONTAL_VEL_TOP = 1.0
 
@@ -131,35 +131,58 @@ def main():
         v_prev = v_next
         p_prev = p_next
         
+    # Lets calculate the vorticity and stream function (for the plot) as well.
+    dv_dx = CDS_X(v_next)
+    du_dy = CDS_Y(u_next)
+    vorticity = dv_dx - du_dy
+    
+    # Calculating the psi function
+    psi = np.zeros_like(vorticity)
+    for _ in range(500):
+        psi_new = np.zeros_like(psi)
+        psi_new[1:-1, 1:-1] = 0.25 * (
+            psi[1:-1, :-2] + psi[:-2, 1:-1] +
+            psi[1:-1, 2:] + psi[2:, 1:-1] +
+            element_len**2 * vorticity[1:-1, 1:-1] 
+        )
+        psi = psi_new 
+    
     data = {
         "x": X.flatten(),
         "y": Y.flatten(),
         "u": u_next.flatten(),
-        "v": v_next.flatten()
-    }
+        "v": v_next.flatten(),
+        "psi": psi.flatten(),
+        "vorticity": vorticity.flatten()
+    } 
 
     df = pd.DataFrame(data)
     df.to_csv("velocity_field.csv", index=False)
 
         
     plt.style.use("dark_background")
-    fig, axs = plt.subplots(1, 2, figsize=(14, 6))
-
-    pressure_plot = axs[0].contourf(X[::2, ::2], Y[::2, ::2], p_next[::2, ::2], cmap="coolwarm")
-    axs[0].quiver(X[::2, ::2], Y[::2, ::2], u_next[::2, ::2], v_next[::2, ::2], color="black", scale=5)
-    axs[0].set_title("Pressure Field with Velocity Vectors")
+    fig, axs = plt.subplots(1, 3, figsize=(21, 6))
+    
+    stream = axs[0].streamplot(X, Y, u_next, v_next, color=np.sqrt(u_next**2 + v_next**2), cmap="coolwarm", density=2)
+    axs[0].set_title("Velocity Streamlines")
     axs[0].set_xlim((0, 1))
     axs[0].set_ylim((0, 1))
-    fig.colorbar(pressure_plot, ax=axs[0])
+    fig.colorbar(stream.lines, ax=axs[0])
 
     velocity_magnitude = np.sqrt(u_next**2 + v_next**2)
     flow_plot = axs[1].contourf(X[::2, ::2], Y[::2, ::2], velocity_magnitude[::2, ::2], cmap="plasma")
-    axs[1].quiver(X[::2, ::2], Y[::2, ::2], u_next[::2, ::2], v_next[::2, ::2], color="white", scale=5)
+    axs[1].quiver(X[::3, ::3], Y[::3, ::3], u_next[::3, ::3], v_next[::3, ::3], color="white", scale=5)
     axs[1].set_title("Velocity Magnitude with Vectors")
     axs[1].set_xlim((0, 1))
     axs[1].set_ylim((0, 1))
     fig.colorbar(flow_plot, ax=axs[1])
-
+    
+    psi_plot = axs[2].contourf(X, Y, psi, cmap="viridis")
+    axs[2].set_title("Stream Function ψ")
+    axs[2].set_xlim((0, 1))
+    axs[2].set_ylim((0, 1))
+    fig.colorbar(psi_plot, ax=axs[2])
+    
     plt.tight_layout()
     plt.show()
 
