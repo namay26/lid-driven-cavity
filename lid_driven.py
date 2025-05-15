@@ -13,6 +13,7 @@
 import matplotlib.pyplot as plt
 import numpy as np  
 from tqdm import tqdm # For visual appearance
+import pandas as pd
 
 # Initialising Constants
 
@@ -130,17 +131,37 @@ def main():
         v_prev = v_next
         p_prev = p_next
         
+    data = {
+        "x": X.flatten(),
+        "y": Y.flatten(),
+        "u": u_next.flatten(),
+        "v": v_next.flatten()
+    }
 
+    df = pd.DataFrame(data)
+    df.to_csv("velocity_field.csv", index=False)
+
+        
     plt.style.use("dark_background")
-    plt.figure()
-    plt.contourf(X[::2, ::2], Y[::2, ::2], p_next[::2, ::2], cmap="coolwarm")
-    plt.colorbar()
+    fig, axs = plt.subplots(1, 2, figsize=(14, 6))
 
-    plt.quiver(X[::2, ::2], Y[::2, ::2], u_next[::2, ::2], v_next[::2, ::2], color="black")
-    plt.xlim((0, 1))
-    plt.ylim((0, 1))
+    pressure_plot = axs[0].contourf(X[::2, ::2], Y[::2, ::2], p_next[::2, ::2], cmap="coolwarm")
+    axs[0].quiver(X[::2, ::2], Y[::2, ::2], u_next[::2, ::2], v_next[::2, ::2], color="black", scale=5)
+    axs[0].set_title("Pressure Field with Velocity Vectors")
+    axs[0].set_xlim((0, 1))
+    axs[0].set_ylim((0, 1))
+    fig.colorbar(pressure_plot, ax=axs[0])
+
+    velocity_magnitude = np.sqrt(u_next**2 + v_next**2)
+    flow_plot = axs[1].contourf(X[::2, ::2], Y[::2, ::2], velocity_magnitude[::2, ::2], cmap="plasma")
+    axs[1].quiver(X[::2, ::2], Y[::2, ::2], u_next[::2, ::2], v_next[::2, ::2], color="white", scale=5)
+    axs[1].set_title("Velocity Magnitude with Vectors")
+    axs[1].set_xlim((0, 1))
+    axs[1].set_ylim((0, 1))
+    fig.colorbar(flow_plot, ax=axs[1])
+
+    plt.tight_layout()
     plt.show()
-
 
 if __name__ == "__main__":
     main()
